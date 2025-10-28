@@ -42,6 +42,8 @@ Requirements:
 - Make them topic-relevant and realistic like real educational flashcards
 - Vary the question formats naturally
 
+IMPORTANT: Return ONLY valid JSON. No markdown, no explanations, no additional text.
+
 Return the flashcards in this exact JSON format:
 {
   "flashcards": [
@@ -49,7 +51,7 @@ Return the flashcards in this exact JSON format:
       "front": "Question text here",
       "back": "Answer text here",
       "hint": "Optional brief hint",
-      "difficulty": "easy|medium|hard",
+      "difficulty": "easy",
       "tags": ["tag1", "tag2"]
     }
   ]
@@ -79,18 +81,30 @@ Ensure the questions are varied and don't repeat similar patterns. Focus on crea
         // Parse the AI response to extract flashcards
         let generatedCards = [];
         try {
-            // Try to extract JSON from the response
-            const jsonMatch = aiResponse.message.match(/\{[\s\S]*\}/);
+            // Clean and extract JSON from response (AI might add extra text or have syntax issues)
+            let jsonString = aiResponse.message.trim();
+
+            // Remove any markdown code blocks
+            jsonString = jsonString.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+
+            // Extract JSON object if wrapped in other text
+            const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                generatedCards = parsed.flashcards || [];
-            } else {
-                // Fallback: try to parse the entire response as JSON
-                const parsed = JSON.parse(aiResponse.message);
-                generatedCards = parsed.flashcards || [];
+                jsonString = jsonMatch[0];
             }
+
+            // Clean up common JSON syntax issues
+            jsonString = jsonString
+                .replace(/,\s*]/g, ']') // Remove trailing commas before closing brackets
+                .replace(/,\s*}/g, '}') // Remove trailing commas before closing braces
+                .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":') // Quote unquoted keys
+                .replace(/:\s*([^",\[\]{}\n]+)([,}])/g, ': "$1"$2'); // Quote unquoted string values
+
+            const parsed = JSON.parse(jsonString);
+            generatedCards = parsed.flashcards || [];
         } catch (parseError) {
             console.error('Error parsing AI response:', parseError);
+            console.error('Raw AI response:', aiResponse.message);
             return res.status(500).json({ success: false, error: 'Failed to parse generated flashcards' });
         }
 

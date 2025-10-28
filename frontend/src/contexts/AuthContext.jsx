@@ -18,7 +18,57 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuth();
+    setupAxiosInterceptors();
   }, []);
+
+  const setupAxiosInterceptors = () => {
+    // Request interceptor
+    axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Response interceptor
+    axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
+              const response = await axios.post('http://localhost:5000/api/auth/refresh', {
+                refreshToken
+              });
+
+              const { accessToken } = response.data;
+              localStorage.setItem('token', accessToken);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+              // Retry the original request with new token
+              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+              return axios(originalRequest);
+            }
+          } catch (refreshError) {
+            // Refresh failed, logout user
+            logout();
+            return Promise.reject(refreshError);
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+  };
 
   const checkAuth = async () => {
     try {
@@ -117,7 +167,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.put('http://localhost:5000/api/auth/profile', profileData, {
         headers: {
-          'Content-Type': profileData instanceof FormData ? 'multipart/form-data' : 'application/json'
+          // Let axios automatically set Content-Type for FormData
+          ...(profileData instanceof FormData ? {} : { 'Content-Type': 'application/json' })
         }
       });
 
@@ -133,6 +184,53 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateApiKey = async (apiKey) => {
+    try {
+      const response = await axios.put('http://localhost:5000/api/auth/api-key', { apiKey });
+
+      return { success: true, message: response.data.message || 'API key updated successfully' };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'API key update failed'
+      };
+    }
+  };
+
+  const getApiKey = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/auth/api-key');
+
+      return { success: true, apiKey: response.data.apiKey };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch API key'
+      };
+    }
+  };
+
+  const deleteAccount = async (password) => {
+    try {
+      const response = await axios.delete('http://localhost:5000/api/auth/account', {
+        data: { password }
+      });
+
+      // Clear local storage and logout
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+
+      return { success: true, message: response.data.message || 'Account deleted successfully' };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Account deletion failed'
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -144,7 +242,10 @@ export const AuthProvider = ({ children }) => {
       updateUser,
       updateProfile,
       fetchUserProgress,
-      changePassword
+      changePassword,
+      updateApiKey,
+      getApiKey,
+      deleteAccount
     }}>
       {children}
     </AuthContext.Provider>

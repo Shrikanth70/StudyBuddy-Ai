@@ -127,11 +127,11 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, location, bio } = req.body;
+    const { name, phone, education, bio } = req.body;
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (phone !== undefined) updateData.phone = phone;
-    if (location !== undefined) updateData.location = location;
+    if (education !== undefined) updateData.education = education;
     if (bio !== undefined) updateData.bio = bio;
 
     // Handle avatar file upload
@@ -445,6 +445,125 @@ const calculateWeeklyGoalProgress = (user) => {
   };
 };
 
+// @desc    Update API key
+// @route   PUT /api/auth/api-key
+// @access  Private
+const updateApiKey = async (req, res) => {
+  try {
+    const { apiKey } = req.body;
+
+    // Validate Gemini API key format (starts with AIza)
+    const geminiApiKeyRegex = /^AIza[0-9A-Za-z-_]{35}$/;
+    if (!geminiApiKeyRegex.test(apiKey)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Gemini API key format. Please provide a valid Gemini API key.'
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { apiKey },
+      { new: true, select: '-password -refreshToken' }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'API key updated successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Get API key
+// @route   GET /api/auth/api-key
+// @access  Private
+const getApiKey = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('+apiKey');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      apiKey: user.apiKey || null
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Delete user account
+// @route   DELETE /api/auth/account
+// @access  Private
+const deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    // Verify password before deletion
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Incorrect password'
+      });
+    }
+
+    // Delete user's avatar file if exists
+    if (user.avatar && !user.avatar.includes('ui-avatars.com')) {
+      const fs = require('fs');
+      const path = require('path');
+      const avatarPath = path.join(__dirname, '..', user.avatar);
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath);
+      }
+    }
+
+    // Delete all user's content (StudyNotes, Quizzes, Flashcards)
+    const StudyNote = require('../models/StudyNote');
+    const Quiz = require('../models/Quiz');
+    const Flashcard = require('../models/Flashcard');
+
+    await StudyNote.deleteMany({ author: req.user.id });
+    await Quiz.deleteMany({ author: req.user.id });
+    await Flashcard.deleteMany({ author: req.user.id });
+
+    // Delete the user
+    await User.findByIdAndDelete(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -454,5 +573,8 @@ module.exports = {
   logout,
   refreshToken,
   getUserProgress,
-  getUserLearningProgress
+  getUserLearningProgress,
+  updateApiKey,
+  getApiKey,
+  deleteAccount
 };

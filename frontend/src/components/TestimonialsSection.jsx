@@ -1,30 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 
 const TestimonialsSection = () => {
-  const testimonials = [
-    {
-      name: 'Sarah Chen',
-      role: 'Computer Science Student',
-      quote: 'StudyBuddy AI helped me prepare for my finals in half the time. The AI-generated quizzes were spot on!',
-      rating: 5,
-      image: '👩‍🎓'
-    },
-    {
-      name: 'Michael Rodriguez',
-      role: 'Medical Student',
-      quote: 'The flashcard system is incredible. I went from struggling with memorization to acing my anatomy exams.',
-      rating: 5,
-      image: '👨‍⚕️'
-    },
-    {
-      name: 'Emily Thompson',
-      role: 'Business Major',
-      quote: 'The PDF summarization feature saved me hours of study time. I can now focus on understanding concepts instead of reading.',
-      rating: 5,
-      image: '👩‍💼'
-    }
-  ];
+  const [testimonials, setTestimonials] = useState([]);
+
+  useEffect(() => {
+    // Load testimonials from localStorage
+    const loadTestimonials = () => {
+      const storedFeedbacks = JSON.parse(localStorage.getItem('userFeedbacks') || '[]');
+      const defaultTestimonials = [
+        {
+          name: 'Sarah Chen',
+          role: 'Computer Science Student',
+          quote: 'StudyBuddy AI helped me prepare for my finals in half the time. The AI-generated quizzes were spot on!',
+          rating: 5,
+          image: '👩‍🎓'
+        },
+        {
+          name: 'Michael Rodriguez',
+          role: 'Medical Student',
+          quote: 'The flashcard system is incredible. I went from struggling with memorization to acing my anatomy exams.',
+          rating: 5,
+          image: '👨‍⚕️'
+        },
+        {
+          name: 'Emily Thompson',
+          role: 'Business Major',
+          quote: 'The PDF summarization feature saved me hours of study time. I can now focus on understanding concepts instead of reading.',
+          rating: 5,
+          image: '👩‍💼'
+        }
+      ];
+
+      // Combine stored feedbacks with defaults, sort by rating descending, take top 3
+      const allTestimonials = [...storedFeedbacks, ...defaultTestimonials];
+      const sortedTestimonials = allTestimonials.sort((a, b) => b.rating - a.rating);
+      const topTestimonials = sortedTestimonials.slice(0, 3);
+
+      setTestimonials(topTestimonials);
+    };
+
+    loadTestimonials();
+
+    // Listen for storage changes to update testimonials in real-time
+    const handleStorageChange = () => {
+      loadTestimonials();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-800 shadow-lg dark:shadow-none">

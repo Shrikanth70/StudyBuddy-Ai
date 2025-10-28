@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, XCircle, AlertTriangle, ArrowLeft, Home } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertTriangle, ArrowLeft, Home, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const QuizEnvironment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const quiz = location.state?.quiz;
+    const quiz = location.state?.quiz || (new URLSearchParams(window.location.search).get('quiz') ? JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get('quiz'))) : null);
 
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -15,6 +15,7 @@ const QuizEnvironment = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [score, setScore] = useState(0);
     const [timeUp, setTimeUp] = useState(false);
+    const [showResults, setShowResults] = useState(false);
 
     useEffect(() => {
         if (!quiz) {
@@ -54,6 +55,13 @@ const QuizEnvironment = () => {
         });
         setScore(totalScore);
         setIsSubmitted(true);
+        setShowResults(true);
+    };
+
+    const handleExit = () => {
+        if (window.confirm('Are you sure you want to exit the quiz? Your progress will be lost.')) {
+            navigate('/quizzes');
+        }
     };
 
     const formatTime = (seconds) => {
@@ -97,7 +105,103 @@ const QuizEnvironment = () => {
         );
     }
 
+    if (showResults) {
+        const totalPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+        const percentage = Math.round((score / totalPoints) * 100);
 
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+                <div className="container mx-auto px-4 max-w-4xl">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                                Quiz Results
+                            </h1>
+                            <div className="text-6xl mb-4">
+                                {percentage >= 70 ? (
+                                    <CheckCircle className="text-green-500 mx-auto" />
+                                ) : (
+                                    <XCircle className="text-red-500 mx-auto" />
+                                )}
+                            </div>
+                            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                                {quiz.title}
+                            </h2>
+                            <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+                                Score: {score} / {totalPoints} ({percentage}%)
+                            </p>
+                            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">
+                                {getPerformanceFeedback(percentage)}
+                            </p>
+                            {percentage >= 70 ? (
+                                <p className="text-green-600 font-semibold">Passed!</p>
+                            ) : (
+                                <p className="text-red-600 font-semibold">Failed - Try again!</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-4 mb-8">
+                            {quiz.questions.map((question, index) => {
+                                const userAnswer = answers[index];
+                                const isCorrect = userAnswer === question.correctAnswer;
+                                return (
+                                    <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                            Question {index + 1}: {question.question}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                            Your answer: {userAnswer || 'Not answered'}
+                                        </p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                            Correct answer: {question.correctAnswer}
+                                        </p>
+                                        {question.explanation && (
+                                            <p className="text-sm text-blue-600 dark:text-blue-400">
+                                                Explanation: {question.explanation}
+                                            </p>
+                                        )}
+                                        <div className="flex items-center mt-2">
+                                            {isCorrect ? (
+                                                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                                            ) : (
+                                                <XCircle className="w-5 h-5 text-red-500 mr-2" />
+                                            )}
+                                            <span className={`text-sm font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                                {isCorrect ? 'Correct' : 'Incorrect'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="flex justify-center space-x-4">
+                            <button
+                                onClick={() => navigate('/quizzes')}
+                                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                            >
+                                <ArrowLeft className="w-4 h-4 inline mr-2" />
+                                Back to Quiz List
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setAnswers({});
+                                    setCurrentQuestion(0);
+                                    setTimeLeft((quiz?.timeLimit || 10) * 60);
+                                    setIsSubmitted(false);
+                                    setShowResults(false);
+                                    setTimeUp(false);
+                                }}
+                                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                            >
+                                Retake Quiz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white py-8">
@@ -107,11 +211,20 @@ const QuizEnvironment = () => {
                         <h1 className="text-2xl font-bold text-gray-900">
                             {quiz.title}
                         </h1>
-                        <div className="flex items-center text-lg font-semibold">
-                            <Clock className="w-5 h-5 mr-2 text-red-500" />
-                            <span className={timeLeft < 300 ? 'text-red-500' : 'text-gray-900'}>
-                                {formatTime(timeLeft)}
-                            </span>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center text-lg font-semibold">
+                                <Clock className="w-5 h-5 mr-2 text-red-500" />
+                                <span className={timeLeft < 300 ? 'text-red-500' : 'text-gray-900'}>
+                                    {formatTime(timeLeft)}
+                                </span>
+                            </div>
+                            <button
+                                onClick={handleExit}
+                                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                            >
+                                <LogOut className="w-4 h-4 mr-1" />
+                                Exit
+                            </button>
                         </div>
                     </div>
 

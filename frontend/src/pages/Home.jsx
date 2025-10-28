@@ -20,7 +20,7 @@ const Home = ({ onOpenChat, currentUser }) => {
         <UseCaseSection />
 
         {/* Testimonials Section */}
-        <TestimonialsSection />
+        {/* <TestimonialsSection /> */}
 
         {/* Footer Section */}
         <Footer />

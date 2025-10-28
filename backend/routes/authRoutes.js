@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { body } = require('express-validator');
-const { register, login, getMe, updateProfile, logout, refreshToken, deleteAvatar, getUserProgress, getUserLearningProgress } = require('../controllers/authController');
+const { register, login, getMe, updateProfile, logout, refreshToken, deleteAvatar, getUserProgress, getUserLearningProgress, updateApiKey, getApiKey } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
 // Configure multer for avatar uploads
@@ -55,5 +55,9 @@ router.post('/logout', protect, logout);
 
 // Learning progress route
 router.get('/:email/learning-progress', protect, getUserLearningProgress);
+
+// API key routes
+router.put('/api-key', protect, updateApiKey);
+router.get('/api-key', protect, getApiKey);
 
 module.exports = router;

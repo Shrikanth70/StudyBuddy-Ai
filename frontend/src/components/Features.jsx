@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FeatureCard from './FeatureCard';
 import {
   StickyNote,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 const Features = () => {
+  const navigate = useNavigate();
 const features = [];
 
   return (
@@ -34,10 +35,20 @@ const features = [];
             Everything You Need to Excel
           </h2>
           
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Discover the comprehensive suite of AI-powered tools designed to transform your learning experience 
-            and help you achieve your academic goals.
-          </p>
+          <p className="text-2xl text-white font-semibold max-w-3xl mx-auto leading-relaxed">
+  Discover the comprehensive suite of AI-powered tools designed to transform your learning experience 
+  and help you achieve your academic goals.
+</p>
+
+<div className="h-6"></div> {/* spacing gap */}
+
+<p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+  Experience the power of an intelligent Smart AI Assistant, crafted to instantly clarify your doubts, 
+  break down complex topics, and provide deeply detailed explanations tailored to your understanding level. 
+  Whether you’re stuck on a concept, need step-by-step reasoning, or want real-world examples, this assistant 
+  becomes your personal 24/7 mentor—guiding you with accuracy, clarity, and confidence.
+</p>
+
         </div>
 
         {/* Features Grid */}
@@ -68,11 +79,8 @@ const features = [];
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="btn btn-primary">
-              🚀 Start Free Trial
-            </button>
-            <button className="btn btn-secondary">
-              📖 View Demo
+            <button className="btn btn-primary" onClick={() => navigate('/chat')}>
+              🚀 Start Exploring
             </button>
           </div>
         </div>

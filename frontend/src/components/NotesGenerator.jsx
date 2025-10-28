@@ -265,10 +265,15 @@ const NotesGenerator = () => {
                 setError(data.error || 'Failed to generate notes');
             }
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                'Failed to generate notes. Please try again.'
-            );
+            if (err.response && err.response.data && err.response.data.fallback) {
+                setGeneratedNotes(err.response.data.fallback);
+                setSuccess('AI service failed. Fallback notes generated and saved.');
+            } else {
+                setError(
+                    err.response?.data?.error ||
+                    'Failed to generate notes. Please try again.'
+                );
+            }
         } finally {
             setIsGenerating(false);
         }

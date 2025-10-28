@@ -30,6 +30,21 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'teacher', 'admin'],
     default: 'student'
   },
+  phone: {
+    type: String,
+    trim: true,
+    maxlength: [15, 'Phone number cannot exceed 15 characters']
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Bio cannot exceed 500 characters']
+  },
+  education: {
+    type: String,
+    trim: true,
+    maxlength: [200, 'Education details cannot exceed 200 characters']
+  },
   profile: {
     age: {
       type: Number,
@@ -121,6 +136,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     select: false
   },
+  apiKey: {
+    type: String,
+    trim: true,
+    select: false // Don't include in regular queries for security
+  },
   preferences: {
     theme: {
       type: String,
@@ -210,7 +230,7 @@ userSchema.methods.generateAccessToken = function() {
       role: this.role
     },
     process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'your-access-secret-key',
-    { expiresIn: process.env.JWT_ACCESS_EXPIRE || '15m' }
+    { expiresIn: process.env.JWT_ACCESS_EXPIRE || '1h' }
   );
 };
 

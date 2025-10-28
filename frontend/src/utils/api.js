@@ -116,4 +116,13 @@ export const newsletterAPI = {
   updatePreferences: (data) => api.put('/newsletter/preferences', data),
 };
 
+// API endpoints for auth
+export const authAPI = {
+  // Update API key
+  updateApiKey: (apiKey) => api.put('/auth/api-key', { apiKey }),
+
+  // Get API key
+  getApiKey: () => api.get('/auth/api-key'),
+};
+
 export { api, cache };

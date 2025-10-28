@@ -582,7 +582,7 @@ const QuizMaker = () => {
                         </button>
                         <button
                             onClick={() => {
-                                const previewQuiz = {
+                                const quizData = {
                                     title: title || 'Untitled Quiz',
                                     description: description || '',
                                     subject: subject || '',
@@ -590,12 +590,12 @@ const QuizMaker = () => {
                                     timeLimit: timeLimit,
                                     difficulty: difficulty
                                 };
-                                navigate('/quiz-environment', { state: { quiz: previewQuiz } });
+                                navigate('/quiz-environment', { state: { quiz: quizData } });
                             }}
                             className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300"
                         >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Preview Quiz Environment
+                            <Play className="w-4 h-4 mr-2" />
+                            Take Quiz
                         </button>
                     </div>
 

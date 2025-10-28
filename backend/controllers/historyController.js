@@ -61,7 +61,7 @@ const getHistory = async (req, res) => {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        const history = user.history[type] || [];
+        const history = user.history?.[type] || [];
         // Sort by generatedAt descending (most recent first)
         history.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
 
@@ -109,9 +109,9 @@ const getAllHistory = async (req, res) => {
         }
 
         const allHistory = {
-            notes: user.history.notes || [],
-            quizzes: user.history.quizzes || [],
-            flashcards: user.history.flashcards || []
+            notes: user.history?.notes || [],
+            quizzes: user.history?.quizzes || [],
+            flashcards: user.history?.flashcards || []
         };
 
         // Sort each history array by generatedAt descending

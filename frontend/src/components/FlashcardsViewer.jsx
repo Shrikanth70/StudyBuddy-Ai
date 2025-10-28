@@ -54,9 +54,9 @@ const FlashcardsViewer = ({ flashcardSet, onClose }) => {
                             <p className="text-xl font-medium text-gray-900 dark:text-white mb-4">
                                 {!showAnswer ? 'Question:' : 'Answer:'}
                             </p>
-                            <p className="text-lg text-gray-700 dark:text-gray-300">
-                                {!showAnswer ? flashcardSet.cards[currentCard].front : flashcardSet.cards[currentCard].back}
-                            </p>
+                            <div className="text-lg text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                {!showAnswer ? flashcardSet.cards[currentCard].front.replace(/\*\*(.*?)\*\*/g, '$1') : flashcardSet.cards[currentCard].back.replace(/\*\*(.*?)\*\*/g, '$1')}
+                            </div>
                         </div>
                     </div>
 

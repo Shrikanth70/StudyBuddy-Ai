@@ -62,8 +62,8 @@ const QuizList = () => {
     };
 
     const handleStartQuiz = (quiz) => {
-        // Navigate to quiz taking page
-        window.location.href = `/quiz/${quiz._id}`;
+        // Navigate to quiz environment with quiz data
+        window.location.href = `/quiz-environment?quiz=${encodeURIComponent(JSON.stringify(quiz))}`;
     };
 
     const getDifficultyColor = (difficulty) => {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import {
     User,
     Mail,
     Phone,
-    MapPin,
     Edit3,
     Save,
     X,
@@ -17,28 +17,30 @@ import {
     Calendar,
     BookOpen,
     Trophy,
-    Settings,
     Shield,
     Loader2,
     Brain,
-    Award,
-    TrendingUp
+    Trash2,
+    AlertTriangle
 } from 'lucide-react';
 
 const ProfilePage = () => {
-    const { user, userProgress, updateProfile, changePassword, fetchUserProgress, loading: authLoading } = useAuth();
-    
+    const navigate = useNavigate();
+    const { user, userProgress, updateProfile, changePassword, fetchUserProgress, deleteAccount, loading: authLoading } = useAuth();
+
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    
+    const [showDeletePassword, setShowDeletePassword] = useState(false);
+
     const [profileData, setProfileData] = useState({
         name: '',
         email: '',
         phone: '',
-        location: '',
+        education: '',
         bio: '',
         avatar: ''
     });
@@ -47,6 +49,13 @@ const ProfilePage = () => {
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
+    });
+
+
+
+    const [deleteData, setDeleteData] = useState({
+        password: '',
+        confirmText: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -60,7 +69,7 @@ const ProfilePage = () => {
                 name: user.name || '',
                 email: user.email || '',
                 phone: user.phone || '',
-                location: user.location || '',
+                education: user.education || '',
                 bio: user.bio || '',
                 avatar: user.avatar || getAvatarUrl(null)
             });
@@ -75,7 +84,7 @@ const ProfilePage = () => {
             }
         };
         loadUserProgress();
-    }, [user, fetchUserProgress]);
+    }, [user]); // Remove fetchUserProgress from dependencies
 
     const handleProfileChange = (e) => {
         const { name, value } = e.target;
@@ -141,7 +150,7 @@ const ProfilePage = () => {
             const formData = new FormData();
             formData.append('name', profileData.name);
             formData.append('phone', profileData.phone);
-            formData.append('location', profileData.location);
+            formData.append('education', profileData.education);
             formData.append('bio', profileData.bio);
 
             // If avatar is a base64 string, convert it to a file
@@ -212,12 +221,12 @@ const ProfilePage = () => {
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
+
                     // Set max dimensions
                     const maxWidth = 200;
                     const maxHeight = 200;
                     let { width, height } = img;
-                    
+
                     // Calculate new dimensions
                     if (width > height) {
                         if (width > maxWidth) {
@@ -230,14 +239,14 @@ const ProfilePage = () => {
                             height = maxHeight;
                         }
                     }
-                    
+
                     canvas.width = width;
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-                    
+
                     // Convert to compressed JPEG
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                    
+
                     setProfileData(prev => ({
                         ...prev,
                         avatar: compressedDataUrl
@@ -248,6 +257,66 @@ const ProfilePage = () => {
             reader.readAsDataURL(file);
         }
     };
+
+
+
+
+
+    const handleDeleteChange = (e) => {
+        const { name, value } = e.target;
+        setDeleteData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        // Clear errors
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
+
+    const validateDeleteAccount = () => {
+        const newErrors = {};
+
+        if (!deleteData.password) {
+            newErrors.password = 'Password is required';
+        }
+
+        if (!deleteData.confirmText || deleteData.confirmText !== 'DELETE') {
+            newErrors.confirmText = 'Please type "DELETE" to confirm';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!validateDeleteAccount()) return;
+
+        setIsLoading(true);
+        setSuccessMessage('');
+
+        try {
+            const result = await deleteAccount(deleteData.password);
+
+            if (result.success) {
+                setSuccessMessage(result.message || 'Account deleted successfully');
+                // Redirect to login or home page
+                navigate('/');
+            } else {
+                setErrors({ general: result.error });
+            }
+        } catch (error) {
+            setErrors({ general: 'Failed to delete account' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
 
     if (authLoading) {
         return (
@@ -393,23 +462,23 @@ const ProfilePage = () => {
                                     )}
                                 </div>
 
-                                {/* Location Field */}
+                                {/* Education Field */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Location
+                                        Education
                                     </label>
                                     {isEditing ? (
                                         <input
                                             type="text"
-                                            name="location"
-                                            value={profileData.location}
+                                            name="education"
+                                            value={profileData.education}
                                             onChange={handleProfileChange}
                                             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                         />
                                     ) : (
                                         <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                            <MapPin className="w-5 h-5 text-gray-400" />
-                                            <span className="text-gray-900 dark:text-gray-100">{profileData.location || 'Not provided'}</span>
+                                            <GraduationCap className="w-5 h-5 text-gray-400" />
+                                            <span className="text-gray-900 dark:text-gray-100">{profileData.education || 'Not provided'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -575,6 +644,107 @@ const ProfilePage = () => {
                                 </div>
                             )}
                         </div>
+
+
+
+                        {/* Delete Account Section */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-red-200 dark:border-red-700 p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                    Danger Zone
+                                </h2>
+                                <button
+                                    onClick={() => setIsDeletingAccount(!isDeletingAccount)}
+                                    disabled={isLoading}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span>{isDeletingAccount ? 'Cancel' : 'Delete Account'}</span>
+                                </button>
+                            </div>
+
+                            {isDeletingAccount ? (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                        <div className="flex items-start space-x-3">
+                                            <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
+                                            <div>
+                                                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                                                    Warning: This action cannot be undone
+                                                </h3>
+                                                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                                                    Deleting your account will permanently remove all your data, including study notes, quizzes, flashcards, and progress history.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Confirm Password
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type={showDeletePassword ? 'text' : 'password'}
+                                                name="password"
+                                                value={deleteData.password}
+                                                onChange={handleDeleteChange}
+                                                className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                                placeholder="Enter your password"
+                                            />
+                                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowDeletePassword(!showDeletePassword)}
+                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                {showDeletePassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                            </button>
+                                        </div>
+                                        {errors.password && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Type "DELETE" to confirm
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="confirmText"
+                                            value={deleteData.confirmText}
+                                            onChange={handleDeleteChange}
+                                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                            placeholder="Type DELETE to confirm"
+                                        />
+                                        {errors.confirmText && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.confirmText}</p>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        onClick={handleDeleteAccount}
+                                        disabled={isLoading}
+                                        className="w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
+                                    >
+                                        {isLoading ? (
+                                            <Loader2 className="w-5 h-5 inline mr-2 animate-spin" />
+                                        ) : (
+                                            <Trash2 className="w-5 h-5 inline mr-2" />
+                                        )}
+                                        Delete Account Permanently
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <Trash2 className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                                    <p className="text-red-600 dark:text-red-400">
+                                        Permanently delete your account and all associated data
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right Column - Stats & Quick Actions */}
@@ -675,17 +845,40 @@ const ProfilePage = () => {
                                 Quick Actions
                             </h3>
                             <div className="space-y-3">
-                                <button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                    <Settings className="w-5 h-5 text-primary-600" />
-                                    <span>Account Settings</span>
+                                <button
+                                    onClick={() => navigate('/chat')}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    <Brain className="w-5 h-5 text-primary-600" />
+                                    <span>AI Chat Assistant</span>
                                 </button>
-                                <button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                    <Shield className="w-5 h-5 text-secondary-600" />
-                                    <span>Privacy & Security</span>
+                                <button
+                                    onClick={() => navigate('/quiz-maker')}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    <GraduationCap className="w-5 h-5 text-secondary-600" />
+                                    <span>Create Quiz</span>
                                 </button>
-                                <button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <button
+                                    onClick={() => navigate('/history')}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
                                     <BookOpen className="w-5 h-5 text-accent-600" />
                                     <span>Learning History</span>
+                                </button>
+                                <button
+                                    onClick={() => navigate('/flashcards')}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    <Trophy className="w-5 h-5 text-green-600" />
+                                    <span>Flashcards</span>
+                                </button>
+                                <button
+                                    onClick={() => navigate('/notes')}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    <BookOpen className="w-5 h-5 text-purple-600" />
+                                    <span>Study Notes</span>
                                 </button>
                             </div>
                         </div>

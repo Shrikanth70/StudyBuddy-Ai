@@ -5,8 +5,8 @@ const UseCaseSection = () => {
   const useCases = [
     {
       icon: FileText,
-      title: 'Summarize PDFs quickly',
-      description: 'Upload any PDF document and get instant AI-powered summaries with key points and concepts highlighted for efficient studying.',
+      title: 'Generate Notes Immediately with Ai',
+      description: 'Get instant AI-powered summaries with key points and concepts highlighted for efficient studying.',
       color: 'from-blue-500 to-cyan-500'
     },
     {
@@ -67,9 +67,9 @@ const UseCaseSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center mt-16">
-          <div className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg mb-4">
+          {/* <div className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg mb-4">
             <span className="font-semibold">Ready to transform your learning?</span>
-          </div>
+          </div> */}
           <p className="text-gray-600 dark:text-gray-400">
             Join thousands of students achieving academic success with StudyBuddy AI
           </p>

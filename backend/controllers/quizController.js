@@ -90,11 +90,29 @@ Return only a valid JSON array of questions, no additional text.`;
         // Parse AI response as JSON
         let questions;
         try {
-            // Extract JSON from response (AI might add extra text)
-            const jsonMatch = aiResponse.message.match(/\[[\s\S]*\]/);
-            questions = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(aiResponse.message);
+            // Clean and extract JSON from response (AI might add extra text or have syntax issues)
+            let jsonString = aiResponse.message.trim();
+
+            // Remove any markdown code blocks
+            jsonString = jsonString.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+
+            // Extract JSON array if wrapped in other text
+            const jsonMatch = jsonString.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                jsonString = jsonMatch[0];
+            }
+
+            // Clean up common JSON syntax issues
+            jsonString = jsonString
+                .replace(/,\s*]/g, ']') // Remove trailing commas before closing brackets
+                .replace(/,\s*}/g, '}') // Remove trailing commas before closing braces
+                .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":') // Quote unquoted keys
+                .replace(/:\s*([^",\[\]{}\n]+)([,}])/g, ': "$1"$2'); // Quote unquoted string values
+
+            questions = JSON.parse(jsonString);
         } catch (parseError) {
             console.error('Failed to parse AI response:', parseError);
+            console.error('Raw AI response:', aiResponse.message);
             // Fallback to basic questions if parsing fails
             questions = generateFallbackQuestions(subject, topic, numQuestions, questionType, difficulty);
         }

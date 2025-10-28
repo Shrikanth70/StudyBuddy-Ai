@@ -44,5 +44,8 @@
   "bugs": {
     "url": "https://github.com/yourusername/studybuddy-ai/issues"
   },
-  "homepage": "https://github.com/yourusername/studybuddy-ai#readme"
+  "homepage": "https://github.com/yourusername/studybuddy-ai#readme",
+  "dependencies": {
+    "react-markdown": "^10.1.0"
+  }
 }

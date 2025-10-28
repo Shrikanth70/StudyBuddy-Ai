@@ -1,76 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Brain, BookOpen, Users, BarChart3, TrendingUp, MessageCircle, X, ChevronRight } from 'lucide-react';
+import { Brain, BarChart3, TrendingUp, ChevronRight } from 'lucide-react';
 
 const Hero = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedFeature, setSelectedFeature] = useState(null);
-  const [showChatPrompt, setShowChatPrompt] = useState(false);
-
-
-  const features = [
-    {
-      icon: MessageCircle,
-      title: 'AI Chat Assistant',
-      description: 'Get instant answers and explanations from our intelligent AI tutor.',
-      details: 'Our AI assistant can answer your questions, explain complex concepts, and provide personalized learning guidance 24/7.',
-      color: 'from-blue-500 to-cyan-500',
-      stat: '100K+ Conversations',
-      requiresAuth: true
-    },
-    {
-      icon: Brain,
-      title: 'Smart Quizzes',
-      description: 'Generate personalized quizzes that adapt to your learning progress.',
-      details: 'Create customized quizzes based on your specific study materials. Our AI tracks your progress and adjusts difficulty levels to maximize learning efficiency.',
-      color: 'from-orange-500 to-red-500',
-      stat: '1M+ Questions Generated'
-    },
-    {
-      icon: BookOpen,
-      title: 'Interactive Flashcards',
-      description: 'Master complex concepts with intelligent spaced repetition flashcards.',
-      details: 'Convert your notes into dynamic flashcards that use proven spaced repetition algorithms to optimize your study sessions.',
-      color: 'from-indigo-500 to-blue-500',
-      stat: '2M+ Flashcards Created'
-    }
-  ];
-
-  const openFeatureModal = (feature) => {
-    if (feature.requiresAuth && !user) {
-      if (feature.title === 'AI Chat Assistant') {
-        setShowChatPrompt(true);
-      }
-      return;
-    }
-    setSelectedFeature(feature);
-  };
-
-  const closeFeatureModal = () => {
-    setSelectedFeature(null);
-  };
-
-  const closeAuthPrompt = () => {
-    setShowChatPrompt(false);
-  };
-
-  const handleStartUsingNow = () => {
-    if (selectedFeature.title === 'AI Chat Assistant') {
-      if (user) {
-        navigate('/chat');
-      } else {
-        setShowChatPrompt(true);
-      }
-    } else if (selectedFeature.title === 'Smart Quizzes') {
-      navigate('/quiz');
-    } else if (selectedFeature.title === 'Interactive Flashcards') {
-      navigate('/flashcards');
-    } else {
-      closeFeatureModal();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -122,7 +56,7 @@ const Hero = () => {
                 </>
               ) : (
                 <Link
-                  to="/resources"
+                  to="/profile"
                   className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   Go to Dashboard
@@ -161,65 +95,7 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Features Showcase */}
-      <section className="py-20 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Everything You Need to
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                Excel Academically
-              </span>
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto">
-              Our comprehensive suite of AI-powered tools is designed to transform your study experience 
-              and help you achieve outstanding academic results.
-            </p>
-          </div>
 
-          <div className="flex justify-center gap-8">
-            {features.map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="w-80 group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 cursor-pointer border border-gray-100 dark:border-gray-700"
-                  onClick={() => openFeatureModal(feature)}
-                >
-                  {/* Feature Icon */}
-                  <div className={`w-20 h-20 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
-                    <IconComponent className="w-10 h-10 text-white" />
-                  </div>
-                  
-                  {/* Feature Content */}
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 text-center">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
-                    {feature.description}
-                  </p>
-                  
-                  {/* Feature Stat */}
-                  <div className="text-center mb-6">
-                    <div className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                      {feature.stat}
-                    </div>
-                  </div>
-                  
-                  {/* CTA Button */}
-                  <button className="w-full bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-gray-200 px-6 py-3 rounded-xl font-semibold hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-700 transition-all duration-300 group-hover:shadow-lg">
-                    {feature.requiresAuth && !user ? 'Sign In to Access' : 'Explore Feature'}
-                    <ChevronRight className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-
-                  {/* Hover Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300"></div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* Growth Section */}
       <section className="py-20 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
@@ -254,93 +130,7 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Feature Modal */}
-      {selectedFeature && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
-            <button
-              onClick={closeFeatureModal}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            {/* Modal Icon */}
-            <div className={`w-16 h-16 bg-gradient-to-r ${selectedFeature.color} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
-              {React.createElement(selectedFeature.icon, { className: "w-8 h-8 text-white" })}
-            </div>
-            
-            {/* Modal Content */}
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-              {selectedFeature.title}
-            </h3>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6 text-center leading-relaxed">
-              {selectedFeature.details}
-            </p>
-            
-            {/* Stat in Modal */}
-            <div className="text-center mb-6">
-              <div className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                {selectedFeature.stat}
-              </div>
-            </div>
-            
-            {/* Action Button */}
-            <div className="flex justify-center">
-              <button
-                onClick={handleStartUsingNow}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                Start Using Now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Auth Prompt Modal - Chat */}
-      {showChatPrompt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
-            <button
-              onClick={closeAuthPrompt}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <MessageCircle className="w-8 h-8 text-white" />
-            </div>
-            
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-              Sign In to Access AI Chat
-            </h3>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6 text-center leading-relaxed">
-              Our AI chat assistant is available to all registered users. Sign in or create an account to start chatting with our intelligent tutor.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/signup"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-center"
-                onClick={closeAuthPrompt}
-              >
-                Create Account
-              </Link>
-              <Link
-                to="/login"
-                className="border-2 border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 px-6 py-3 rounded-xl font-semibold hover:border-blue-500 hover:text-blue-600 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-all duration-300 text-center"
-                onClick={closeAuthPrompt}
-              >
-                Sign In
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
 
 
     </div>
