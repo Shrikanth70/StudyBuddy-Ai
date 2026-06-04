@@ -2,6 +2,8 @@
 
 A comprehensive, professional-grade web application designed to revolutionize the way students learn, study, and manage their academic journey. Built with modern technologies and AI-powered features.
 
+Demo: https://drive.google.com/drive/u/1/folders/1SukpCx0wBLMWcXDafJx6u2rhVjewJDSq
+
 ## 🌟 Features
 
 ### Core Features
