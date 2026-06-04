@@ -364,10 +364,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Lucide React for icons
 - Vite for build tooling
 
-## 📞 Support
 
-For support, email support@studysphere.com or join our Discord server.
 
 ---
 
-**StudySphere** - Empowering students to learn smarter, not harder.
+**StudyBuddy** - Empowering students to learn smarter, not harder.
